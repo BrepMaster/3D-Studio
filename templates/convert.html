@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>格式转换 · 3D Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .top-navbar { background: white; border-bottom: 1px solid rgba(0,0,0,0.08); padding: 16px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .nav-content { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.1rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .logo i { color: #3a86ff; font-size: 1.2rem; }
+        .nav-actions { display: flex; gap: 12px; }
+        .nav-btn { background: transparent; border: 1px solid rgba(0,0,0,0.1); padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; color: #475569; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+        .nav-btn:hover { background: #f1f5f9; border-color: #3a86ff; color: #3a86ff; }
+        .convert-section { margin-top: 40px; background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .section-title { font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .section-title i { color: #3a86ff; }
+        .upload-container { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+        .upload-box { border: 2px dashed rgba(58,134,255,0.4); border-radius: 16px; background: rgba(58,134,255,0.05); padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .upload-box:hover { border-color: #3a86ff; background: rgba(58,134,255,0.1); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(58,134,255,0.1); }
+        .upload-box i { font-size: 3rem; margin-bottom: 16px; color: #3a86ff; }
+        .upload-box h3 { font-size: 1.1rem; font-weight: 600; color: #334155; margin-bottom: 8px; }
+        .upload-box p { font-size: 0.9rem; color: #64748b; margin-bottom: 16px; }
+        .file-info { background: #f8fafc; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 16px; text-align: left; margin-top: 16px; display: none; }
+        .file-info.visible { display: block; }
+        .file-info h4 { font-size: 0.9rem; font-weight: 600; color: #334155; margin-bottom: 8px; }
+        .file-info p { font-size: 0.8rem; color: #64748b; margin: 4px 0; }
+        .convert-settings { background: #f8fafc; border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+        .settings-title { font-size: 1.1rem; font-weight: 600; color: #334155; margin-bottom: 16px; }
+        .setting-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .setting-label { font-size: 0.9rem; font-weight: 500; color: #475569; }
+        .setting-value { display: flex; align-items: center; gap: 8px; }
+        select, input[type="number"] { padding: 8px 12px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 0.85rem; color: #334155; background: white; }
+        input[type="number"] { width: 100px; }
+        .action-buttons { display: flex; gap: 16px; justify-content: center; }
+        .btn-primary { background: #3a86ff; border: 1px solid #3a86ff; padding: 12px 24px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; color: white; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(58,134,255,0.3); }
+        .btn-secondary { background: white; border: 1px solid rgba(0,0,0,0.1); padding: 12px 24px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; color: #334155; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-secondary:hover { background: #f1f5f9; border-color: #3a86ff; color: #3a86ff; }
+        .progress-container { margin-top: 32px; display: none; }
+        .progress-container.visible { display: block; }
+        .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+        .progress-fill { height: 100%; background: #3a86ff; border-radius: 12px; width: 0%; transition: width 0.3s ease; }
+        .progress-text { font-size: 0.85rem; color: #64748b; text-align: center; }
+        @media (max-width: 768px) {
+            .upload-container { grid-template-columns: 1fr; gap: 24px; }
+            .convert-section { padding: 24px; }
+            .action-buttons { flex-direction: column; align-items: center; }
+            .action-buttons button { width: 100%; max-width: 300px; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-navbar">
+        <div class="nav-content">
+            <a href="/" class="logo"><i class="fas fa-cube"></i><span>3D Studio</span></a>
+            <div class="nav-actions"><a href="/" class="nav-btn"><i class="fas fa-home"></i><span>返回主页</span></a></div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="convert-section">
+            <h2 class="section-title"><i class="fas fa-exchange-alt"></i> 3D模型格式转换</h2>
+            <div class="upload-container">
+                <div class="upload-box" id="inputUpload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>输入文件</h3>
+                    <p>支持：STEP, STP, STL</p>
+                    <p style="font-size: 0.8rem; color: #3a86ff;"><i class="fas fa-info-circle"></i> 支持多文件上传</p>
+                    <input type="file" id="inputFile" accept=".step,.stp,.stl" multiple style="display: none;">
+                    <div class="file-info" id="inputFileInfo">
+                        <h4>文件信息</h4>
+                        <div id="fileList" style="max-height: 150px; overflow-y: auto;"><p>未选择文件</p></div>
+                        <p id="totalFileSize" style="margin-top: 8px; font-size: 0.8rem; color: #64748b;">总文件大小：-</p>
+                    </div>
+                </div>
+                <div class="upload-box">
+                    <i class="fas fa-cloud-download-alt"></i>
+                    <h3>输出文件</h3>
+                    <p id="outputFormatDisplay">格式：STL</p>
+                    <div class="file-info" id="outputFileInfo">
+                        <h4>转换结果</h4>
+                        <p id="outputFileName">文件名：-</p>
+                        <p id="outputFileSize">文件大小：-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="convert-settings">
+                <h3 class="settings-title">转换设置</h3>
+                <div class="setting-item">
+                    <span class="setting-label">输出格式</span>
+                    <div class="setting-value">
+                        <select id="outputFormat">
+                            <option value="stl">STL</option>
+                            <option value="obj">OBJ</option>
+                            <option value="step">STEP</option>
+                            <option value="bin">BIN</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">线性精度</span>
+                    <div class="setting-value">
+                        <input type="number" id="linearDeflection" value="0.1" min="0.01" max="1" step="0.01">
+                        <span style="font-size: 0.8rem; color: #64748b;">mm</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">角度精度</span>
+                    <div class="setting-value">
+                        <input type="number" id="angularDeflection" value="0.5" min="0.1" max="1" step="0.1">
+                        <span style="font-size: 0.8rem; color: #64748b;">度</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">输出设置</span>
+                    <div class="setting-value">
+                        <select id="outputNaming">
+                            <option value="original">保持原文件名</option>
+                            <option value="timestamp">添加时间戳</option>
+                            <option value="custom">自定义前缀</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="setting-item" id="customPrefixContainer" style="display: none;">
+                    <span class="setting-label">自定义前缀</span>
+                    <div class="setting-value">
+                        <input type="text" id="customPrefix" placeholder="输入前缀" style="padding: 8px 12px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 0.85rem; width: 200px;">
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">下载方式</span>
+                    <div class="setting-value">
+                        <select id="downloadMode">
+                            <option value="individual">单独下载</option>
+                            <option value="zip">压缩包下载</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn-primary" id="convertBtn"><i class="fas fa-play"></i> 开始转换</button>
+                <button class="btn-secondary" id="resetBtn"><i class="fas fa-undo-alt"></i> 重置</button>
+            </div>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                <div class="progress-text" id="progressText">准备就绪</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const inputUpload = document.getElementById('inputUpload');
+        const inputFile = document.getElementById('inputFile');
+        const inputFileInfo = document.getElementById('inputFileInfo');
+        const fileList = document.getElementById('fileList');
+        const totalFileSize = document.getElementById('totalFileSize');
+        const convertBtn = document.getElementById('convertBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const outputNaming = document.getElementById('outputNaming');
+        const customPrefixContainer = document.getElementById('customPrefixContainer');
+        const customPrefix = document.getElementById('customPrefix');
+        const downloadMode = document.getElementById('downloadMode');
+
+        outputNaming.addEventListener('change', () => {
+            customPrefixContainer.style.display = outputNaming.value === 'custom' ? 'flex' : 'none';
+        });
+
+        const outputFormat = document.getElementById('outputFormat');
+        const outputFormatDisplay = document.getElementById('outputFormatDisplay');
+        outputFormat.addEventListener('change', () => {
+            outputFormatDisplay.textContent = `格式：${outputFormat.value.toUpperCase()}`;
+        });
+
+        inputUpload.addEventListener('click', () => inputFile.click());
+        inputFile.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length) {
+                displayFileList(files);
+                inputFileInfo.classList.add('visible');
+            }
+        });
+
+        function displayFileList(files) {
+            let totalSize = 0;
+            let html = '';
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                totalSize += file.size;
+                html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                            <span style="font-size: 0.8rem; color: #334155;">${file.name}</span>
+                            <span style="font-size: 0.7rem; color: #64748b;">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                         </div>`;
+            }
+            fileList.innerHTML = html;
+            totalFileSize.textContent = `总文件大小：${(totalSize / 1024 / 1024).toFixed(2)} MB`;
+        }
+
+        convertBtn.addEventListener('click', () => {
+            const files = inputFile.files;
+            if (files.length === 0) { alert('请选择输入文件'); return; }
+            progressContainer.classList.add('visible');
+            progressFill.style.width = '0%';
+            progressText.textContent = '准备转换...';
+            batchConvert(files);
+        });
+
+        resetBtn.addEventListener('click', () => {
+            inputFile.value = '';
+            inputFileInfo.classList.remove('visible');
+            progressContainer.classList.remove('visible');
+            fileList.innerHTML = '<p>未选择文件</p>';
+            totalFileSize.textContent = '总文件大小：-';
+        });
+
+        async function batchConvert(files) {
+            const totalFiles = files.length;
+            if (downloadMode.value === 'zip' && totalFiles > 1) {
+                progressFill.style.width = '0%';
+                progressText.textContent = '正在准备压缩包...';
+                try {
+                    await downloadAsZip(files);
+                    progressFill.style.width = '100%';
+                    progressText.textContent = `压缩包下载完成！共 ${totalFiles} 个文件`;
+                    document.getElementById('outputFileName').textContent = '文件名：converted_files.zip';
+                    document.getElementById('outputFileInfo').classList.add('visible');
+                } catch (error) {
+                    console.error(error);
+                    progressText.textContent = '压缩包下载失败，将使用单独下载模式';
+                    downloadMode.value = 'individual';
+                    setTimeout(() => singleFileConvert(files), 1000);
+                }
+            } else {
+                singleFileConvert(files);
+            }
+        }
+
+        async function downloadAsZip(files) {
+            // 检查是否选择了 BIN 格式，如果是，确保所有文件都是 STEP 格式
+            if (outputFormat.value === 'bin') {
+                for (let i = 0; i < files.length; i++) {
+                    const inputExt = files[i].name.split('.').pop().toLowerCase();
+                    if (!['step', 'stp'].includes(inputExt)) {
+                        throw new Error('BIN 格式只支持 STEP 文件');
+                    }
+                }
+            }
+            
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) formData.append('files', files[i]);
+            formData.append('output_format', outputFormat.value);
+            formData.append('linear_deflection', document.getElementById('linearDeflection').value);
+            formData.append('angular_deflection', document.getElementById('angularDeflection').value);
+            progressFill.style.width = '30%';
+            progressText.textContent = '正在上传文件...';
+            const response = await fetch('/api/batch-upload', { method: 'POST', body: formData });
+            if (!response.ok) {
+                const errJson = await response.json().catch(() => ({}));
+                throw new Error(errJson.error || '压缩包生成失败');
+            }
+            progressFill.style.width = '70%';
+            progressText.textContent = '正在生成压缩包...';
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = 'converted_files.zip';
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        }
+
+        async function singleFileConvert(files) {
+            const totalFiles = files.length;
+            for (let i = 0; i < totalFiles; i++) {
+                await convertSingleFile(files[i], i + 1, totalFiles);
+            }
+            progressFill.style.width = '100%';
+            progressText.textContent = `全部转换完成！共 ${totalFiles} 个文件`;
+            document.getElementById('outputFileName').textContent = `文件名：${totalFiles} 个文件已转换`;
+            document.getElementById('outputFileInfo').classList.add('visible');
+        }
+
+        async function convertSingleFile(file, index, total) {
+            const progressPerFile = 100 / total;
+            const currentProgress = (index - 1) * progressPerFile;
+            progressFill.style.width = `${currentProgress}%`;
+            progressText.textContent = `转换文件 ${index}/${total}：${file.name}`;
+            try {
+                await uploadAndConvert(file);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function generateOutputFileName(originalName) {
+            // 保持原始文件名，只更改扩展名
+            const baseName = originalName.replace(/\.(step|stp|stl)$/i, '');
+            const extensions = { 'stl': '.stl', 'obj': '.obj', 'step': '.step', 'bin': '.bin' };
+            return `${baseName}${extensions[outputFormat.value] || '.stl'}`;
+        }
+
+        async function uploadAndConvert(file) {
+            // 检查文件扩展名是否为 STEP 格式（不区分大小写）
+            const inputExt = file.name.split('.').pop().toLowerCase();
+            if (outputFormat.value === 'bin' && !['step', 'stp'].includes(inputExt)) {
+                showNotification('BIN 格式只支持 STEP 文件', 'error');
+                return false;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            let apiUrl = '/api/upload';
+            if (outputFormat.value === 'bin') {
+                apiUrl = '/api/step-to-bin';
+            } else {
+                formData.append('output_format', outputFormat.value);
+                formData.append('linear_deflection', document.getElementById('linearDeflection').value);
+                formData.append('angular_deflection', document.getElementById('angularDeflection').value);
+            }
+            
+            const response = await fetch(apiUrl, { method: 'POST', body: formData });
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `HTTP ${response.status}`);
+            }
+            const contentDisposition = response.headers.get('content-disposition');
+            let outputFileName = generateOutputFileName(file.name);
+            if (contentDisposition) {
+                const match = contentDisposition.match(/filename="([^"]+)"/);
+                if (match) outputFileName = match[1];
+            }
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = outputFileName;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        }
+    </script>
+</body>
+</html>
