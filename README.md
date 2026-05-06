@@ -10,6 +10,8 @@ A powerful 3D model viewing and conversion tool that supports uploading, preview
 
 ---
 
+![image](https://github.com/BrepMaster/3D-Studio/raw/main/1.png)
+
 ## ✨ 功能特性 | Features
 
 ### 核心功能 | Core Features
